@@ -21,15 +21,13 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project --no-dev
+RUN uv sync --locked --no-install-project --no-dev
 
 # Copy application source code
 COPY . /app
 
 # Install the project with already installed dependencies
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev
+RUN uv sync --locked --no-dev
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.12-slim-bookworm
