@@ -108,6 +108,15 @@ So let's keep things simple for this exercise.
 
 Also there was no explicit requirement that email address be unique so that was not included in this solution for simplicity sake.  A more complete solution would of course and that include that unique constraint in the database schema and code.
 
+### AI Usage
+
+Claude Code was used in various capacities to help complete this exercise:
+
+- The basic skeleton of the app code and infrastructure was cobbled together by hand initially from the official docs and prior experience.
+- I use Claude Code a lot as a rubber duck during this phase because I know more or less what needs to be done and I prefer to bounce ideas off Claude and confirm against the official docs rather than let it drive the process at this point.
+- I also use Claude Code for scaffolding tests, refining the solution and maintain documentation.
+- I prefer using AI only for small focused snippets of functionality where I can heavily scrutinse the  output for correctness.
+
 ### Overview
 
 The app follows a simple flow:
