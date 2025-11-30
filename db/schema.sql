@@ -1,3 +1,6 @@
+-- Schema for the 'users' table
+-- Note the simple field limits for demonstration purposes and lack of unique constraints on email.
+
   CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       first_name VARCHAR(255) NOT NULL,

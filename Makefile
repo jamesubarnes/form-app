@@ -2,7 +2,7 @@
 
 # Container runtime (docker or podman)
 # Override with: CONTAINER_RUNTIME=podman make <target>
-# Or set in your shell: export CONTAINER_RUNTIME=podman
+# Or set in shell: export CONTAINER_RUNTIME=podman
 CONTAINER_RUNTIME ?= docker
 
 # GCP Configuration
@@ -14,7 +14,7 @@ help:
 	@echo "Available commands:"
 	@echo ""
 	@echo "Local Development:"
-	@echo "  make build           - Build Docker image (verify image builds)"
+	@echo "  make build           - Build Docker image (to verify image builds)"
 	@echo "  make dev             - Start application in development mode with hot reloading"
 	@echo "  make local-db-up     - Start local PostgreSQL container and initialize schema"
 	@echo "  make local-db-down   - Stop and remove local PostgreSQL container and volume"
@@ -22,7 +22,7 @@ help:
 	@echo ""
 	@echo "Google Cloud Deployment:"
 	@echo "  make gcloud-db-up    - Create database and schema on Cloud SQL"
-	@echo "  make gcloud-db-down  - Drop database from Cloud SQL (destructive!)"
+	@echo "  make gcloud-db-down  - Drop database from Cloud SQL"
 	@echo "  make gcloud-deploy   - Deploy to Google Cloud Run"
 
 build:
@@ -65,7 +65,7 @@ gcloud-db-up:
 		--instance=$(CLOUD_SQL_INSTANCE) \
 		--project=$(GCP_PROJECT) 2>/dev/null || echo "Database 'formapp' already exists, continuing..."
 	@echo "Initializing database schema..."
-	@echo "You will be prompted for the postgres user password..."
+	@echo "Enter postgres user password when prompted..."
 	@gcloud sql connect $(CLOUD_SQL_INSTANCE) \
 		--user=postgres \
 		--project=$(GCP_PROJECT) \
@@ -104,7 +104,6 @@ gcloud-deploy:
 		--platform managed \
 		--region $(GCP_REGION) \
 		--project $(GCP_PROJECT) \
-		--allow-unauthenticated \
 		--set-env-vars="DB_NAME=$${DB_NAME:-formapp},DB_USER=$${DB_USER:-postgres},DB_PASSWORD=$${DB_PASSWORD},SECRET_KEY=$${SECRET_KEY},ENVIRONMENT=production,CLOUD_SQL_CONNECTION_NAME=$(GCP_PROJECT):$(GCP_REGION):$(CLOUD_SQL_INSTANCE)" \
 		--add-cloudsql-instances=$(GCP_PROJECT):$(GCP_REGION):$(CLOUD_SQL_INSTANCE) \
 		--memory=256Mi \
@@ -112,4 +111,3 @@ gcloud-deploy:
 		--max-instances=5 \
 		--timeout=60
 	@echo "Deployment complete"
-	@echo "Note: For production, consider using Google Secret Manager instead of environment variables"

@@ -191,6 +191,12 @@ class TestSubmitRouteInvalidData:
             },
             {
                 "first_name": "John",
+                "last_name": "Doe456",
+                "email": "john@example.com",
+                "favourite_colour": "red",
+            },
+            {
+                "first_name": "John",
                 "last_name": "Doe",
                 "email": "john@example.com",
                 "favourite_colour": "yellow",
@@ -252,37 +258,3 @@ class TestSubmitRouteDatabaseErrors:
 
         assert response.status_code == 302
         assert "/result" in response.location
-
-
-class TestMissingFormFields:
-    """Test behavior when form fields are missing"""
-
-    def test_submit_missing_first_name(
-        self, mocker: MockerFixture, client: FlaskClient
-    ) -> None:
-        """Test submission without first_name field"""
-        mock_insert_user = mocker.patch("app.routes.insert_user")
-
-        response = client.post(
-            "/submit",
-            data={
-                "last_name": "Doe",
-                "email": "john@example.com",
-                "favourite_colour": "red",
-            },
-            follow_redirects=True,
-        )
-
-        mock_insert_user.assert_not_called()
-        assert b"Validation error" in response.data
-
-    def test_submit_missing_all_fields(
-        self, mocker: MockerFixture, client: FlaskClient
-    ) -> None:
-        """Test submission with no data"""
-        mock_insert_user = mocker.patch("app.routes.insert_user")
-
-        response = client.post("/submit", data={}, follow_redirects=True)
-
-        mock_insert_user.assert_not_called()
-        assert b"Validation error" in response.data

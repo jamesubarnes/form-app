@@ -1,6 +1,8 @@
 # Form Submission Application
 
-A simple Flask web app that collects user information (name, email, favourite colour) and saves it to PostgreSQL. Designed to run on Google Cloud Run.
+A simple Flask web app that collects user information (name, email, favourite colour) and saves it to PostgreSQL. Designed to be developed locally and deployed to Google Cloud Run. See [Requirements](REQUIREMENTS.md) for exercise details.
+
+The final deployed application is at <https://form-app-334412769754.australia-southeast2.run.app>
 
 ## Prerequisites
 
@@ -9,7 +11,7 @@ A simple Flask web app that collects user information (name, email, favourite co
 - Docker or Podman - Container runtime for local development (docker used by default)
 - Correctly configured Google Cloud account (for production deployment)
 
-## Running Locally
+## Local Development
 
 ### Quick Start
 
@@ -30,8 +32,6 @@ make dev
 ```
 
 Visit <http://localhost:8080>
-
-The defaults in `.env.example` work fine for local development. Only change them if you need different database settings.
 
 ### Useful Commands
 
@@ -58,7 +58,7 @@ CONTAINER_RUNTIME=podman make build
 
 ## Deploying to Google Cloud
 
-For this exercise, the Cloud SQL instance (`my-instance`) was created in the Google Cloud Console beforehand, and the Postgres password was set and noted down.
+For this exercise, the Cloud SQL instance (`my-instance`) was created in the Google Cloud Console beforehand, and a strong Postgres password was set and noted down.
 
 In `cloudshell` set the project and enable the required services:
 
@@ -90,10 +90,25 @@ Generate a secret key with: `python -c "import secrets; print(secrets.token_hex(
 
 **3. Note the application URL:**
 
-After deployment completes, Cloud Run will output the application URL.  It should be something like:
-`https://form-app-XXXX-uc.a.run.app`
+After deployment completes, Google Cloud Run will output the deployed application URL.  It should be something like:
+`https://form-app-XXXX.australia-southeast2.run.app`
 
-## How It Works
+## Notes
+
+### Scope Considerations
+
+This stood out as key to me:
+
+`You don’t need to use a framework like react, nor does it need to look pretty.`
+
+So let's keep things simple for this exercise.
+
+- Don't create a complex polyglot monorepo with a Typescript frontend SPA and Python backend server
+- Use `flask` to serve a simple HTML server-rendered form and handle submission requests
+
+Also there was no explicit requirement that email address be unique so that was not included in this solution for simplicity sake.  A more complete solution would of course and that include that unique constraint in the database schema and code.
+
+### Overview
 
 The app follows a simple flow:
 
@@ -112,31 +127,51 @@ The app follows a simple flow:
 - `app/templates/form.html` - HTML form with client-side validation
 - `app/templates/result.html` - Success/error result page with link back to form
 - `db/schema.sql` - Database table definition
+- `tests/test_*.py` - Unit tests
 
-### Database Connection
+### Database
 
-The app automatically switches between connection methods based on the `ENVIRONMENT` variable:
+As noted, in the Google Cloud console I first created a new PostgreSQL Sandbox instance with the following details:
+
+```text
+Choose a Cloud SQL edition: Enterprise
+Edition preset: Sandbox
+
+Database version: PostgreSQL 16
+Instance ID: my-instance
+Password: <strong password>
+Region: australia-southeast2 (Melbourne)
+
+Zonal availability: Single zone
+Customise your instance: [reviewed and accepted defaults]
+```
+
+The app switches between connection methods based on the `ENVIRONMENT` variable:
 
 - **Local development**: Connects via TCP to `localhost:5432`
 - **Cloud Run (production)**: Connects via Unix socket at `/cloudsql/PROJECT:REGION:INSTANCE`
 
-When `ENVIRONMENT=production`, the Cloud SQL connection uses the Unix socket path provided by Cloud Run's `--add-cloudsql-instances` flag. This socket is automatically mounted in the container by Cloud Run.
+### Testing
 
-## Expected Costs
+As mentioned earlier, `make test` will run the unit test suite.
 
-Running this on Google Cloud costs about $15-20/month:
+For the deployed application I submitted a number of test submissions.  Here's the resulting `psql` output on the Google Cloud SQL instance:
 
-- Cloud SQL (db-f1-micro): ~$10-15/month
-- Cloud Run: ~$1-5/month with light traffic
+```text
+formapp=> select * from users;
+ id | first_name | last_name |          email           | favourite_colour |         created_at         
+----+------------+-----------+--------------------------+------------------+----------------------------
+  1 | James      | U         | james.u.barnes@gmail.com | red              | 2025-11-30 11:06:02.932079
+  2 | Helen      | Barnes    | helenbarnes@gmail.com    | green            | 2025-11-30 11:06:22.324269
+  3 | Curtis     | Barnes    | curtisbarnes@gmail.com   | blue             | 2025-11-30 11:06:42.312325
+(3 rows)
+```
 
-The configuration limits max instances to 5 to prevent unexpected scaling costs.
+## Some Improvements to Consider
 
-## Things That Could Be Better
-
-Improvements for a production app:
-
+- **Styling** - Add some CSS
 - **CSRF tokens** - Protect against cross-site attacks
-- **Logging** - Better debugging in production
+- **Logging** - Add log statements for better debugging
 - **Email uniqueness** - Prevent duplicate submissions
 - **Rate limiting** - Prevent abuse of the public endpoint
 - **Secret Manager** - Use Google Secret Manager instead of environment variables for sensitive data
