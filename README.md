@@ -25,7 +25,7 @@ uv sync
 cp .env.example .env
 
 # Start database
-make db-up
+make local-db-up
 
 # Run the app
 make dev
@@ -39,17 +39,13 @@ The defaults in `.env.example` work fine for local development. Only change them
 
 ```bash
 # Development
-make dev         # Start app with hot reloading
-make test        # Run all tests
+make dev              # Start app with hot reloading
+make test             # Run all tests
+make build            # Build container image (verify it builds)
 
-# Containers (docker by default, or set CONTAINER_RUNTIME=podman)
-make build       # Build container image
-make run         # Run containerized app
-make stop        # Stop container
-
-# Database
-make db-up       # Start and init database
-make db-down     # Stop and remove database
+# Local Database
+make local-db-up      # Start and init local PostgreSQL
+make local-db-down    # Stop and remove local database
 ```
 
 **Using Podman instead of Docker:**
@@ -64,61 +60,54 @@ CONTAINER_RUNTIME=podman make build
 
 ## Deploying to Google Cloud
 
-### 1. Set Up Your Google Cloud Project
+### Prerequisites
+
+For this exercise, the Cloud SQL instance (`my-instance`) was created in the Google Cloud Console beforehand, and the postgres password was set and noted down.
+
+In `cloudshell` set the project and enable the required services:
 
 ```bash
-# Create project
-gcloud projects create MY-PROJECT-ID
-gcloud config set project MY-PROJECT-ID
+gcloud config set project actu-senior-dev-exercise
 
-# Enable required services
 gcloud services enable run.googleapis.com sqladmin.googleapis.com cloudbuild.googleapis.com
 ```
 
-### 2. Create PostgreSQL Database
+### Deployment Steps
+
+**1. Create database and initialize schema:**
 
 ```bash
-# Create Cloud SQL instance
-gcloud sql instances create form-app-db \
-  --database-version=POSTGRES_16 \
-  --tier=db-f1-micro \
-  --region=australia-southeast1
+make gcloud-db-up
 
-# Set password
-gcloud sql users set-password postgres \
-  --instance=form-app-db \
-  --password=MY-SECURE-PASSWORD
-
-# Create database
-gcloud sql databases create formapp --instance=form-app-db
+# Enter <POSTGRES-PASSWORD>
 ```
 
-### 3. Initialize Database Schema
+This will create the `formapp` database and run `db/schema.sql`.
 
-Connect to your database and run the schema file:
+**2. Deploy to Cloud Run:**
 
 ```bash
-gcloud sql connect form-app-db --user=postgres
+DB_PASSWORD=<POSTGRES-PASSWORD> SECRET_KEY=<MY-SECRET-KEY> make gcloud-deploy
 ```
 
-Then at the psql prompt:
+Generate a secret key with: `python -c "import secrets; print(secrets.token_hex(32))"`
 
-```sql
-\c formapp
-\i db/schema.sql
-\q
-```
+**3. Note the application URL:**
 
-### 4. Deploy the Application
+After deployment completes, Cloud Run will output a URL like:
+`https://form-app-XXXX-uc.a.run.app`
+
+### Configuration
+
+The Makefile uses these known defaults:
 
 ```bash
-export CLOUD_SQL_CONNECTION_NAME=MY-PROJECT-ID:australia-southeast1:form-app-db
-make deploy
+GCP_PROJECT=actu-senior-dev-exercise
+GCP_REGION=australia-southeast2
+CLOUD_SQL_INSTANCE=my-instance
 ```
 
-After deployment finishes, you'll get a URL like `https://form-app-app-XXXX-XX.a.run.app`
-
-**Note:** For production, use Google Secret Manager for sensitive values instead of environment variables.
+**Note:** For production, we should use Google Secret Manager for sensitive values instead of environment variables.
 
 ## How It Works
 
@@ -142,21 +131,6 @@ The app follows a simple flow:
 
 The app automatically switches between local database (TCP) and Cloud Run (Unix socket) based on environment variables.
 
-## Security
-
-What's covered:
-
-- SQL injection prevented (parameterized queries)
-- Input validation on frontend and backend
-- Container runs as non-root user
-- Environment variables for secrets
-
-What's not:
-
-- CSRF protection (could add Flask-WTF for production)
-
-Never commit your `.env` file - it contains passwords and secret keys.
-
 ## Expected Costs
 
 Running this on Google Cloud costs about $15-20/month:
@@ -168,10 +142,8 @@ The configuration limits max instances to 5 to prevent unexpected scaling costs.
 
 ## Things That Could Be Better
 
-These aren't required for the exercise but might be nice for a production app:
+Improvements for a production app:
 
 - **CSRF tokens** - Protect against cross-site attacks
 - **Logging** - Better debugging in production
-- **Type hints** - Better IDE support
-- **Form preservation** - Keep user input when validation fails
-- **Email uniqueness** - Prevent duplicate submissions (if needed)
+- **Email uniqueness** - Prevent duplicate submissions (if a requirement)
