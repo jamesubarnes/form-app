@@ -6,7 +6,7 @@ A simple Flask web app that collects user information (name, email, favourite co
 
 ## What You Need
 
-- Python 3.14+
+- Python 3.12+
 - [uv](https://docs.astral.sh/uv/) - Fast Python package manager
 - Docker or Podman - Container runtime for local development (docker used by default)
 - Google Cloud account (for deployment)
@@ -53,6 +53,7 @@ make db-down     # Stop and remove database
 ```
 
 **Using Podman instead of Docker:**
+
 ```bash
 # One-time per session
 export CONTAINER_RUNTIME=podman

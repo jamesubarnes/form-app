@@ -4,7 +4,7 @@
 # - https://cloud.google.com/run/docs/tips/python
 
 # Stage 1: Builder - Install dependencies
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 # Enable bytecode compilation for faster startup
 ENV UV_COMPILE_BYTECODE=1
@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
 # Stage 2: Runtime - Minimal production image
-FROM python:3.14-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 # Create non-root user for security (matching official example pattern)
 RUN groupadd --system --gid 999 appuser \

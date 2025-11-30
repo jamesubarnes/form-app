@@ -3,7 +3,7 @@ name = "form-app"
 version = "0.1.0"
 description = "Senior Developer Exercise"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "email-validator>=2.3.0",
     "flask>=3.1.2",
@@ -21,4 +21,4 @@ dev = [
 ]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py312"
