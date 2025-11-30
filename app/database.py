@@ -6,9 +6,20 @@ DB_CONFIG = {
     "dbname": os.environ.get("DB_NAME", "formapp"),
     "user": os.environ.get("DB_USER", "postgres"),
     "password": os.environ.get("DB_PASSWORD", "postgres"),
-    "host": os.environ.get("DB_HOST", "localhost"),
-    "port": os.environ.get("DB_PORT", "5432"),
 }
+
+# For local development: connect via TCP to localhost
+# For production deployment: use Unix socket path for Cloud SQL
+if os.environ.get("ENVIRONMENT") == "production":
+    # Cloud SQL Unix socket path: /cloudsql/PROJECT:REGION:INSTANCE
+    cloud_sql_connection = os.environ.get(
+        "CLOUD_SQL_CONNECTION_NAME",
+        "actu-senior-dev-exercise:australia-southeast2:my-instance",
+    )
+    DB_CONFIG["host"] = f"/cloudsql/{cloud_sql_connection}"
+else:
+    DB_CONFIG["host"] = os.environ.get("DB_HOST", "localhost")
+    DB_CONFIG["port"] = os.environ.get("DB_PORT", "5432")
 
 
 def get_db_connection() -> psycopg2.extensions.connection:

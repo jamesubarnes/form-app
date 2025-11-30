@@ -61,10 +61,10 @@ EXPOSE 8080
 # - timeout=0 (Cloud Run manages request timeouts)
 # - preload app for better error detection and memory efficiency
 CMD exec gunicorn --bind :${PORT:-8080} \
-     --workers 1 \
-     --threads 8 \
-     --timeout 0 \
-     --preload \
-     --access-logfile - \
-     --error-logfile - \
-     "app:create_app()"
+    --workers 1 \
+    --threads 8 \
+    --timeout 0 \
+    --preload \
+    --access-logfile - \
+    --error-logfile - \
+    "app:create_app()"

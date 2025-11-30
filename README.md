@@ -2,14 +2,12 @@
 
 A simple Flask web app that collects user information (name, email, favourite colour) and saves it to PostgreSQL. Designed to run on Google Cloud Run.
 
-**Live URL:** [To be added after deployment]
-
-## What You Need
+## Prerequisites
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/) - Fast Python package manager
 - Docker or Podman - Container runtime for local development (docker used by default)
-- Google Cloud account (for deployment)
+- Correctly configured Google Cloud account (for production deployment)
 
 ## Running Locally
 
@@ -17,7 +15,7 @@ A simple Flask web app that collects user information (name, email, favourite co
 
 ```bash
 # Clone and install
-git clone <repository-url>
+git clone https://github.com/jamesubarnes/form-app
 cd form-app
 uv sync
 
@@ -60,9 +58,7 @@ CONTAINER_RUNTIME=podman make build
 
 ## Deploying to Google Cloud
 
-### Prerequisites
-
-For this exercise, the Cloud SQL instance (`my-instance`) was created in the Google Cloud Console beforehand, and the postgres password was set and noted down.
+For this exercise, the Cloud SQL instance (`my-instance`) was created in the Google Cloud Console beforehand, and the Postgres password was set and noted down.
 
 In `cloudshell` set the project and enable the required services:
 
@@ -87,27 +83,15 @@ This will create the `formapp` database and run `db/schema.sql`.
 **2. Deploy to Cloud Run:**
 
 ```bash
-DB_PASSWORD=<POSTGRES-PASSWORD> SECRET_KEY=<MY-SECRET-KEY> make gcloud-deploy
+DB_PASSWORD=<POSTGRES-PASSWORD> SECRET_KEY=<SECRET-KEY> make gcloud-deploy
 ```
 
 Generate a secret key with: `python -c "import secrets; print(secrets.token_hex(32))"`
 
 **3. Note the application URL:**
 
-After deployment completes, Cloud Run will output a URL like:
+After deployment completes, Cloud Run will output the application URL.  It should be something like:
 `https://form-app-XXXX-uc.a.run.app`
-
-### Configuration
-
-The Makefile uses these known defaults:
-
-```bash
-GCP_PROJECT=actu-senior-dev-exercise
-GCP_REGION=australia-southeast2
-CLOUD_SQL_INSTANCE=my-instance
-```
-
-**Note:** For production, we should use Google Secret Manager for sensitive values instead of environment variables.
 
 ## How It Works
 
@@ -129,7 +113,14 @@ The app follows a simple flow:
 - `app/templates/result.html` - Success/error result page with link back to form
 - `db/schema.sql` - Database table definition
 
-The app automatically switches between local database (TCP) and Cloud Run (Unix socket) based on environment variables.
+### Database Connection
+
+The app automatically switches between connection methods based on the `ENVIRONMENT` variable:
+
+- **Local development**: Connects via TCP to `localhost:5432`
+- **Cloud Run (production)**: Connects via Unix socket at `/cloudsql/PROJECT:REGION:INSTANCE`
+
+When `ENVIRONMENT=production`, the Cloud SQL connection uses the Unix socket path provided by Cloud Run's `--add-cloudsql-instances` flag. This socket is automatically mounted in the container by Cloud Run.
 
 ## Expected Costs
 
@@ -146,4 +137,6 @@ Improvements for a production app:
 
 - **CSRF tokens** - Protect against cross-site attacks
 - **Logging** - Better debugging in production
-- **Email uniqueness** - Prevent duplicate submissions (if a requirement)
+- **Email uniqueness** - Prevent duplicate submissions
+- **Rate limiting** - Prevent abuse of the public endpoint
+- **Secret Manager** - Use Google Secret Manager instead of environment variables for sensitive data
