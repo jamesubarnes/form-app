@@ -1,5 +1,10 @@
 .PHONY: help build dev run stop db-up db-down test deploy
 
+# Container runtime (docker or podman)
+# Override with: CONTAINER_RUNTIME=podman make <target>
+# Or set in your shell: export CONTAINER_RUNTIME=podman
+CONTAINER_RUNTIME ?= docker
+
 help:
 	@echo "Available commands:"
 	@echo "  make build       - Build Docker image"
@@ -13,7 +18,7 @@ help:
 
 build:
 	@echo "Building Docker image..."
-	podman build -t form-app:latest .
+	$(CONTAINER_RUNTIME) build -t form-app:latest .
 	@echo "Build complete"
 
 dev:
@@ -22,7 +27,7 @@ dev:
 
 run:
 	@echo "Starting application..."
-	podman run -d \
+	$(CONTAINER_RUNTIME) run -d \
 		--name form-app \
 		-p 8080:8080 \
 		--env-file .env \
@@ -31,12 +36,12 @@ run:
 
 stop:
 	@echo "Stopping application container..."
-	podman stop form-app || true
-	podman rm form-app || true
+	$(CONTAINER_RUNTIME) stop form-app || true
+	$(CONTAINER_RUNTIME) rm form-app || true
 
 db-up:
 	@echo "Starting PostgreSQL container..."
-	podman run -d \
+	$(CONTAINER_RUNTIME) run -d \
 		--name form-app-db \
 		-e POSTGRES_DB=formapp \
 		-e POSTGRES_USER=postgres \
@@ -48,14 +53,14 @@ db-up:
 	@sleep 3
 	@echo "PostgreSQL is running on localhost:5432"
 	@echo "Initializing database schema..."
-	podman exec -i form-app-db psql -U postgres -d formapp < db/schema.sql
+	$(CONTAINER_RUNTIME) exec -i form-app-db psql -U postgres -d formapp < db/schema.sql
 	@echo "Database schema created successfully"
 
 db-down:
 	@echo "Removing PostgreSQL container and volume..."
-	podman stop form-app-db || true
-	podman rm form-app-db || true
-	podman volume rm form-app-data || true
+	$(CONTAINER_RUNTIME) stop form-app-db || true
+	$(CONTAINER_RUNTIME) rm form-app-db || true
+	$(CONTAINER_RUNTIME) volume rm form-app-data || true
 	@echo "Cleanup complete"
 
 test:

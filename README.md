@@ -8,7 +8,7 @@ A simple Flask web app that collects user information (name, email, favourite co
 
 - Python 3.14+
 - [uv](https://docs.astral.sh/uv/) - Fast Python package manager
-- [podman](https://podman.io/) - Container runtime for local development
+- Docker or Podman - Container runtime for local development (docker used by default)
 - Google Cloud account (for deployment)
 
 ## Running Locally
@@ -42,7 +42,7 @@ The defaults in `.env.example` work fine for local development. Only change them
 make dev         # Start app with hot reloading
 make test        # Run all tests
 
-# Docker (optional)
+# Containers (docker by default, or set CONTAINER_RUNTIME=podman)
 make build       # Build container image
 make run         # Run containerized app
 make stop        # Stop container
@@ -50,6 +50,15 @@ make stop        # Stop container
 # Database
 make db-up       # Start and init database
 make db-down     # Stop and remove database
+```
+
+**Using Podman instead of Docker:**
+```bash
+# One-time per session
+export CONTAINER_RUNTIME=podman
+
+# Or per command
+CONTAINER_RUNTIME=podman make build
 ```
 
 ## Deploying to Google Cloud
