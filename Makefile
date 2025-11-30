@@ -104,7 +104,7 @@ gcloud-deploy:
 		--platform managed \
 		--region $(GCP_REGION) \
 		--project $(GCP_PROJECT) \
-		--allow-unauthenticated \
+		--no-invoker-iam-check \
 		--set-env-vars="DB_NAME=$${DB_NAME:-formapp},DB_USER=$${DB_USER:-postgres},DB_PASSWORD=$${DB_PASSWORD},SECRET_KEY=$${SECRET_KEY},ENVIRONMENT=production,CLOUD_SQL_CONNECTION_NAME=$(GCP_PROJECT):$(GCP_REGION):$(CLOUD_SQL_INSTANCE)" \
 		--add-cloudsql-instances=$(GCP_PROJECT):$(GCP_REGION):$(CLOUD_SQL_INSTANCE) \
 		--memory=256Mi \

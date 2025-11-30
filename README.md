@@ -88,10 +88,14 @@ DB_PASSWORD=<POSTGRES-PASSWORD> SECRET_KEY=<SECRET-KEY> make gcloud-deploy
 
 Generate a secret key with: `python -c "import secrets; print(secrets.token_hex(32))"`
 
+The deployment uses `--no-invoker-iam-check` to allow public access without requiring IAM permissions.
+
 **3. Note the application URL:**
 
 After deployment completes, Cloud Run will output the application URL.  It should be something like:
 `https://form-app-XXXX-uc.a.run.app`
+
+The service will be publicly accessible at this URL.
 
 ## How It Works
 
