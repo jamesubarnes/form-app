@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Environment files
+.env
+
+# Testing
+.pytest_cache/
+
+# OS
+.DS_Store
+
+# Ruff
+.ruff_cache/

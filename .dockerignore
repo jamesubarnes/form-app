@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Environment files
+.env
+
+# Git
+.git/
+.gitignore
+
+# Tests
+tests/
+.pytest_cache/
+
+# Documentation
+*.md
+
+# Development
+Makefile
+
+# OS
+.DS_Store
+
+# Ruff
+.ruff_cache/
